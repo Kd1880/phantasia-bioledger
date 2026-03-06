@@ -1,4 +1,4 @@
-# 🔐 BioLedger — Verifiable AI Inference with Blockchain
+# BioLedger — Verifiable AI Inference with Blockchain
 
 > **2nd Place — AI + Blockchain Track, Phantasia 3.0 Hackathon**
 
@@ -6,7 +6,7 @@ BioLedger is a decentralized biometric verification pipeline that combines facia
 
 ---
 
-## 🧠 What It Does
+##  What It Does
 
 Traditional biometric systems are opaque black boxes — you can't verify what data was used, which model ran, or whether outputs were tampered with.
 
@@ -19,7 +19,7 @@ BioLedger solves this by making every step verifiable:
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```
 Image Upload
@@ -51,7 +51,7 @@ Image Upload
 
 ---
 
-## 👥 Team Roles
+##  Team Roles
 
 | Role | Responsibility |
 |---|---|
@@ -62,7 +62,7 @@ Image Upload
 
 ---
 
-## 🤖 AI Pipeline (My Contribution)
+##  AI Pipeline (My Contribution)
 
 ### Face Embedding
 - Used **ArcFace pretrained model** via DeepFace
@@ -88,7 +88,7 @@ Image Upload
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 bioledger-ai/
@@ -110,7 +110,7 @@ bioledger-ai/
 
 ---
 
-## ⚙️ Setup & Installation
+##  Setup & Installation
 
 ### Prerequisites
 - Python 3.8 – 3.10
@@ -148,7 +148,7 @@ tf-keras
 
 ---
 
-## 🚀 Running the Project
+##  Running the Project
 
 ### Step 1 — Prepare Dataset
 
@@ -228,7 +228,7 @@ Body: image (File)
 
 ---
 
-## 🧪 Demo Scenarios
+##  Demo Scenarios
 
 | Scenario | Input | Trust Score | Result |
 |---|---|---|---|
@@ -238,7 +238,7 @@ Body: image (File)
 
 ---
 
-## 🔗 Blockchain Integration
+##  Blockchain Integration
 
 The AI API output is consumed by the smart contract layer:
 
@@ -250,18 +250,7 @@ anomaly flag → triggers updateReputation() if True
 
 Keccak-256 was chosen specifically because it is **Ethereum's native hashing algorithm** — ensuring the hash computed off-chain in Python matches exactly what the Solidity smart contract would compute, enabling end-to-end cross-verification.
 
----
-
-## 🏆 Results
-
-- **2nd Place — AI + Blockchain Track, Phantasia 3.0 Hackathon**
-- 100% anomaly detection accuracy on test set
-- Clear trust score separation: authorized (83–85) vs adversarial (2–25)
-- Production-ready REST API tested via Postman
-
----
-
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -278,3 +267,4 @@ Keccak-256 was chosen specifically because it is **Ethereum's native hashing alg
 ## 📄 License
 
 MIT License — feel free to use and build on this.
+
