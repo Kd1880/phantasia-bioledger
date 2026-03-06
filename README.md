@@ -1,8 +1,10 @@
-# BioLedger — Verifiable AI Inference with Blockchain
+#  BioLedger — Verifiable AI Inference with Blockchain
 
 > **2nd Place — AI + Blockchain Track, Phantasia 3.0 Hackathon**
 
-BioLedger is a decentralized biometric verification pipeline that combines facial recognition AI with blockchain-based audit logging. Every biometric inference is cryptographically hashed and logged on-chain — making the entire pipeline transparent, tamper-proof, and accountable.
+BioLedger is a decentralized biometric verification pipeline combining facial recognition AI with Polygon blockchain-based audit logging. Every biometric inference is cryptographically hashed via Keccak-256 and logged on-chain — making the entire pipeline transparent, tamper-proof, and accountable.
+
+> **AI-only module (standalone):** [bioledger-ai](https://github.com/Kd1880/bioledger-ai)
 
 ---
 
@@ -12,10 +14,10 @@ Traditional biometric systems are opaque black boxes — you can't verify what d
 
 BioLedger solves this by making every step verifiable:
 
-- **Dataset contributions** → traceable via cryptographic hashing
-- **Model inference** → logged with trust scores on-chain
-- **Poisoned inputs** → detected and contributor reputation penalized
-- **Audit trail** → immutable and publicly verifiable
+- **Biometric inference** → trust scored by AI, logged on-chain
+- **Poisoned inputs** → detected in real time, contributor reputation penalized
+- **Image fingerprinting** → Keccak-256 hash links AI output to blockchain record
+- **Audit trail** → immutable and publicly verifiable on Polygon
 
 ---
 
@@ -25,28 +27,23 @@ BioLedger solves this by making every step verifiable:
 Image Upload
      │
      ▼
-┌─────────────────────────────┐
-│     Flask REST API          │
-│  • Keccak-256 image hash    │
-│  • Routes to AI module      │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│       AI Pipeline           │
-│  • ArcFace embeddings       │
-│  • DBSCAN clustering        │
-│  • Cosine similarity score  │
-│  • Trust score (0–100)      │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│    Blockchain Layer         │
-│  • Log inference on-chain   │
-│  • Update contributor rep   │
-│  • Dataset versioning       │
-└─────────────────────────────┘
+┌──────────────────────────────┐
+│      Flask REST API          │
+│   app.py + config.py         │
+│   • Keccak-256 image hash    │
+│   • Routes to AI + blockchain│
+└──────────┬───────────────────┘
+           │
+     ┌─────┴──────┐
+     ▼            ▼
+┌─────────────┐  ┌──────────────────────┐
+│ AI Pipeline │  │  Blockchain Layer     │
+│ embedder.py │  │  blockchain.py        │
+│ trust.py    │  │  contracts/           │
+│ ai_module.py│  │  hardhat.config.js    │
+│ build_      │  │  scripts/             │
+│ cluster.py  │  │  deployments/         │
+└─────────────┘  └──────────────────────┘
 ```
 
 ---
@@ -55,152 +52,59 @@ Image Upload
 
 | Role | Responsibility |
 |---|---|
-| **AI Engineer** | Face embeddings, DBSCAN clustering, trust scoring, Flask API |
-| **Blockchain Engineer** | Smart contracts, dataset versioning, inference logging |
-| **Backend Engineer** | Integration layer, Web3 connection, hashing pipeline |
+| **AI Engineer** | ArcFace embeddings, DBSCAN clustering, trust scoring, Flask API |
+| **Blockchain Engineer** | Solidity contracts, Hardhat setup, Polygon deployment, inference logging |
+| **Backend Engineer** | Web3 integration, blockchain.py, hashing pipeline, register.py |
 | **Frontend Engineer** | Upload UI, trust meter visualization, demo flow |
-
----
-
-##  AI Pipeline (My Contribution)
-
-### Face Embedding
-- Used **ArcFace pretrained model** via DeepFace
-- Generates **512-dimensional identity vectors** per face
-- No model training required — pure inference on pretrained weights
-
-### Anomaly Detection
-- Built authorized identity cluster from **30 facial images across 3 identity classes**
-- Applied **DBSCAN unsupervised clustering** to model legitimate user embeddings
-- Computed **cosine similarity** between new input and cluster centroid
-
-### Trust Scoring
-- Returns a **trust score (0–100)** for every uploaded face
-- Authorized faces: **83–85 trust score**
-- Unknown/adversarial faces: **2–25 trust score**
-- **100% detection accuracy** on test set
-
-### Flask REST API
-- `POST /analyze` — accepts image, returns trust score + image hash
-- `GET /health` — server status check
-- Applied **Keccak-256 hashing** (Ethereum-native) for tamper-proof fingerprinting
-- API response feeds directly into blockchain team's smart contract calls
 
 ---
 
 ##  Project Structure
 
 ```
-bioledger-ai/
+phantasia-bioledger/
+│
+├── contracts/               ← Solidity smart contracts
+│   └── BioLedger.sol            (dataset versioning, inference logging,
+│                                 contributor reputation)
+│
+├── scripts/                 ← Hardhat deployment scripts
+├── deployments/             ← Deployed contract addresses & ABIs
+├── test/                    ← Smart contract unit tests
+├── utils/                   ← Shared utility functions
 │
 ├── dataset/
-│   ├── authorized/        ← Clean authorized face images
-│   ├── unknown/           ← Unknown face images for testing
-│   └── poison/            ← Adversarial/poison face images
+│   ├── authorized/          ← Authorized face images
+│   ├── unknown/             ← Unknown faces for testing
+│   └── poison/              ← Adversarial faces for demo
 │
-├── embedder.py            ← ArcFace embedding extraction
-├── build_cluster.py       ← DBSCAN cluster builder
-├── trust.py               ← Cosine similarity trust scoring
-├── ai_module.py           ← Main AI inference interface
-├── app.py                 ← Flask REST API
-├── test_pipeline.py       ← End-to-end pipeline test
-├── centroid.pkl           ← Saved cluster centroid
-└── requirements.txt
-```
-
----
-
-##  Setup & Installation
-
-### Prerequisites
-- Python 3.8 – 3.10
-- pip
-
-### Install Dependencies
-
-```bash
-git clone https://github.com/Kd1880/phantasia-bioledger.git
-cd phantasia-bioledger
-
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Mac/Linux
-source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-### Requirements
-
-```
-deepface
-scikit-learn
-scipy
-numpy
-flask
-tensorflow
-opencv-python
-tf-keras
-```
-
----
-
-##  Running the Project
-
-### Step 1 — Prepare Dataset
-
-Place face images in the appropriate folders:
-- `dataset/authorized/` — 15–20 images of the authorized person
-- `dataset/unknown/` — images of unknown people for testing
-- `dataset/poison/` — adversarial images for poison demo
-
-### Step 2 — Build the Cluster
-
-```bash
-python build_cluster.py
-```
-
-This processes all authorized faces, runs DBSCAN, and saves `centroid.pkl`.
-
-### Step 3 — Test the Pipeline
-
-```bash
-python test_pipeline.py
-```
-
-Expected output:
-```
-AUTHORIZED FACES → trust_score: 83–85, status: AUTHORIZED
-UNKNOWN FACES    → trust_score: 2–25,  status: SUSPICIOUS
-POISON FACES     → trust_score: 2–15,  status: SUSPICIOUS
-```
-
-### Step 4 — Start the API
-
-```bash
-python app.py
-```
-
-Server runs at `http://127.0.0.1:5000`
-
----
+├── embedder.py              ← ArcFace embedding extraction
+├── build_cluster.py         ← DBSCAN cluster builder, saves centroid
+├── trust.py                 ← Cosine similarity trust scoring
+├── ai_module.py             ← AI inference interface
+├── blockchain.py            ← Web3.py + Polygon contract interaction
+├── register.py              ← Dataset/model registration on-chain
+├── app.py                   ← Flask REST API (main entry point)
+├── config.py                ← Configuration (RPC URL, contract address)
+├── test_pipeline.py         ← AI pipeline end-to-end test
+├── test.py                  ← Integration tests
+├── hardhat.config.js        ← Hardhat + Polygon Amoy testnet config
+├── package.json             ← Node dependencies for Hardhat
+├── requirements.txt         ← Python dependencies
+└── .gitignore
 
 ## 📡 API Reference
 
 ### `POST /analyze`
 
-Upload a face image for biometric verification.
+**Request** — `multipart/form-data`:
 
-**Request:**
-```
-Content-Type: multipart/form-data
-Body: image (File)
-```
+| Field | Type | Description |
+|---|---|---|
+| `image` | File | Face image (.jpg / .png) |
 
 **Response:**
+
 ```json
 {
   "trust_score": 85.41,
@@ -214,11 +118,11 @@ Body: image (File)
 
 | Field | Type | Description |
 |---|---|---|
-| `trust_score` | float (0–100) | Higher = more trustworthy |
+| `trust_score` | float 0–100 | Higher = more trustworthy |
 | `anomaly` | bool | True if input is suspicious |
 | `cosine_distance` | float | Distance from authorized centroid |
 | `status` | string | `AUTHORIZED` or `SUSPICIOUS` |
-| `image_hash` | string | Keccak-256 hash for blockchain logging |
+| `image_hash` | string | Keccak-256 hash logged on-chain |
 
 ### `GET /health`
 
@@ -228,43 +132,59 @@ Body: image (File)
 
 ---
 
-##  Demo Scenarios
+## 🧪 Demo Scenarios
 
-| Scenario | Input | Trust Score | Result |
+| Scenario | Input | Trust Score | On-chain Action |
 |---|---|---|---|
-| Clean upload | Authorized person | 83–85 | ✅ AUTHORIZED |
-| Unknown face | Different person | 10–25 | 🔴 SUSPICIOUS |
-| Poison attempt | Adversarial image | 2–15 | 🔴 SUSPICIOUS |
+| Clean upload | Authorized person | 83–85 | ✅ Inference logged |
+| Unknown face | Different person | 10–25 | 🔴 Flagged, logged |
+| Poison attempt | Adversarial image | 2–15 | 🔴 Reputation penalized |
 
 ---
 
-##  Blockchain Integration
+## 🤖 AI Pipeline Details
 
-The AI API output is consumed by the smart contract layer:
+### Why ArcFace?
+State-of-the-art face recognition model producing 512-dimensional embeddings where same-identity faces cluster tightly and different identities are clearly separated.
 
-```
-image_hash   → used as unique identifier in logInference()
-trust_score  → stored on-chain per inference record
-anomaly flag → triggers updateReputation() if True
-```
+### Why DBSCAN?
+Doesn't require a predefined number of clusters — naturally labels outliers (poisoned inputs) as noise without forcing them into a cluster.
 
-Keccak-256 was chosen specifically because it is **Ethereum's native hashing algorithm** — ensuring the hash computed off-chain in Python matches exactly what the Solidity smart contract would compute, enabling end-to-end cross-verification.
+### Why Cosine Similarity?
+In 512-dimensional embedding space, cosine similarity measures angular distance between identity vectors — more meaningful than Euclidean distance for high-dimensional face embeddings.
+
+### Why Keccak-256?
+Ethereum's native hashing algorithm — the same one used by `keccak256()` in Solidity. Image hash computed in Python is directly verifiable on-chain without any conversion.
+
+---
+
+## 📊 Results
+
+| Category | Cosine Distance | Trust Score | Status |
+|---|---|---|---|
+| Authorized | 0.14 – 0.18 | 83 – 85 | ✅ AUTHORIZED |
+| Unknown | 0.75 – 0.98 | 2 – 25 | 🔴 SUSPICIOUS |
+| Poison | 0.84 – 0.93 | 6 – 15 | 🔴 SUSPICIOUS |
+
+**Detection accuracy: 100% on test set**
+
+---
 
 ##  Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Face Embeddings | ArcFace (via DeepFace) |
-| Clustering | DBSCAN (scikit-learn) |
-| Similarity | Cosine Distance (scipy) |
+| Face Embeddings | ArcFace via DeepFace |
+| Clustering | DBSCAN — scikit-learn |
+| Similarity | Cosine Distance — scipy |
 | API | Flask |
 | Hashing | Keccak-256 |
-| Blockchain | Polygon (smart contracts by blockchain team) |
+| Blockchain | Polygon Amoy Testnet |
+| Smart Contracts | Solidity + Hardhat |
+| Web3 Integration | Web3.py |
 | Testing | Postman |
 
----
 
 ## 📄 License
 
-MIT License — feel free to use and build on this.
-
+MIT License
